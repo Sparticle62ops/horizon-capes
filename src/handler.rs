@@ -601,7 +601,8 @@ fn parse_json_number(json: &str, key: &str) -> i32 {
         .unwrap_or(0)
 }
 
-/// Tiny PNG decoder for the RGBA payloads the tests feed in.
+/// Tiny PNG decoder for the RGBA payloads the tests feed in. Bounded:
+/// dimensions are capped and the frame size uses checked arithmetic.
 fn decode_png(bytes: &[u8]) -> Option<NativeImage> {
     const PNG: [u8; 8] = [0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A];
     if bytes.len() < PNG.len() || bytes[..8] != PNG {
@@ -616,7 +617,7 @@ fn decode_png(bytes: &[u8]) -> Option<NativeImage> {
         let ctype = &bytes[i + 4..i + 8];
         let data_start = i + 8;
         let data_end = (data_start + len).min(bytes.len());
-        if ctype == b"IHDR" && len >= 13 {
+        if ctype == b"IHDR" && len >= 13 && data_start + 13 <= bytes.len() {
             width = u32::from_be_bytes(bytes[data_start..data_start + 4].try_into().ok()?);
             height = u32::from_be_bytes(bytes[data_start + 4..data_start + 8].try_into().ok()?);
             let color_type = bytes[data_start + 9];
@@ -633,8 +634,16 @@ fn decode_png(bytes: &[u8]) -> Option<NativeImage> {
     if width == 0 || height == 0 || idat.is_empty() {
         return None;
     }
-    inflate(&idat, (width * height * 4 + height) as usize)
-        .map(|raw| unfilter(raw, width, height))
+    // Bounds (review follow-up): cap the dimensions and compute the payload
+    // with checked math, so a crafted header can neither overflow the size
+    // hint nor leave the frame buffers short.
+    const MAX_DIM: u32 = 4096;
+    if width > MAX_DIM || height > MAX_DIM {
+        return None;
+    }
+    let stride = width.checked_mul(4)?.checked_add(1)?;
+    let size = stride.checked_mul(height)?;
+    inflate(&idat, size as usize).map(|raw| unfilter(raw, width, height))
 }
 
 fn inflate(data: &[u8], size_hint: usize) -> Option<Vec<u8>> {

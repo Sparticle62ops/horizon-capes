@@ -123,6 +123,13 @@ impl Capes {
         CONFIG_IO.with(|io| io.borrow().read_config())
     }
 
+    /// The mod API wiring's settings sync: install a loaded config as the
+    /// live cells (upstream the settings page writes the same fields
+    /// directly; the page is engine surface here).
+    pub fn install_config(config: CapeConfig) {
+        CONFIG.with(|slot| *slot.borrow_mut() = Some(config));
+    }
+
     /// `fun identifier(id) = Identifier.fromNamespaceAndPath(MOD_ID, id)`.
     pub fn identifier(id: impl Into<String>) -> crate::handler::Identifier {
         crate::handler::Identifier::from_namespace_and_path(Self::MOD_ID, id)

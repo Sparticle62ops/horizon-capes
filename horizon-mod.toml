@@ -1,0 +1,46 @@
+id = "capes"
+name = "Capes"
+version = "1.0.0"
+description = """Exact 1:1 Rust translation of [Capes](https://github.com/CaelTheColher/Capes)
+(upstream Java, LGPL-2.1), by CaelTheColher. Carries the upstream license and credit.
+
+Ported for the Horizon client by sparticle.
+
+The mod shows other players' capes: the five providers (OptiFine, LabyMod,
+MinecraftCapes, Cosmetica, Cloaks+), each queried once per profile with its own
+URL shape, the cape selector screen with the live rotating player preview
+(cycle the type, drag to rotate, flip body/elytra), the animated-cape frame
+stepping, and the elytra texture toggle. The client's own profile loads the
+configured provider's cape; every other profile tries each provider once.
+Twenty-nine tests, one per behavior.
+
+The package ships the full module tree. The mod API wires the original's config
+as settings (the five provider toggles and the elytra toggle, same defaults and
+upstream labels) and runs the original's create-or-load against
+`config/capes.json5` on client setup.
+
+Known seams (engine-stage; tracked):
+- the skin and cape render hooks that apply capes in game (skin lookup, cape
+  feature renderer, entity render dispatcher, skin customization screen) have no
+  mod API surface (horizon-rust/horizon#15865); the port's host traits stand in
+  until one lands;
+- the `/capes debug` chat command waits on a client command surface
+  (horizon-rust/horizon#19234);
+- `clientCapeType` is an enum and the settings page has no enum kind, so it
+  stays file-held and the selector screen drives it.
+
+Pinned to Horizon f00125f and horizon-mixins e59da909; exact 1:1 Rust port tested against those revisions.
+
+Licence: LGPL-2.1. Source: https://github.com/Sparticle62ops/horizon-capes
+"""
+authors = ["CaelTheColher", "sparticle"]
+license = "LGPL-2.1"
+homepage = "https://github.com/Sparticle62ops/horizon-capes"
+api = "0.2"
+side = "client"
+capabilities = ["registries"]
+
+[native]
+game = "26.3"
+horizon = "f00125f61f794aaa3d4e950d301f353b35b6ee3d"
+mixins = "e59da9094f0c2fdda6c627fe9eff22dec6a906f0"

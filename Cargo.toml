@@ -1,8 +1,12 @@
 [package]
 name = "horizon-mod-capes"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 license = "LGPL-2.1"
+description = "Capes, a native mod: cape providers (OptiFine, LabyMod, MinecraftCapes, Cosmetica, Cloaks+), the cape selector with the live player preview, and the elytra texture toggle. 1:1 port of CaelTheColher/Capes (LGPL-2.1)."
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+horizon-mod-api = { path = ".horizon/sdk/api/crates/horizon-mod-api" }
